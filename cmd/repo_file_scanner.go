@@ -57,13 +57,13 @@ var scanCmd = &cobra.Command{
 		defer os.RemoveAll(repoDir)
 
 		logger.Info("Scanning files", zap.String("dir", repoDir), zap.Float64("file_threshold_mb", gitRepoLargeFileScanner.RepoSizeMB))
-		report, err := scanner.Scan(cmd.Context(), repoDir, gitRepoLargeFileScanner.SizeBytes())
+		report, err := scanner.Scan(cmd.Context(), logger, repoDir, gitRepoLargeFileScanner.SizeBytes())
 		if err != nil {
 			return fmt.Errorf("scan repo: %w", err)
 		}
 
 		output := struct {
-			TotalNumOfFiles int                              `json:"total_num_of_files"`
+			TotalNumOfFiles int                              `json:"total"`
 			Files           []scanner.FileExceedingThreshold `json:"files"`
 		}{
 			TotalNumOfFiles: len(report),

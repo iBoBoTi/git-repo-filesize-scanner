@@ -21,6 +21,7 @@ func CloneRepo(ctx context.Context, cloneURL string, token string) (string, erro
 	var auth transport.AuthMethod
 	if token != "" {
 		auth = &http.BasicAuth{
+			Username: "x-oauth-basic",
 			Password: token,
 		}
 	}
