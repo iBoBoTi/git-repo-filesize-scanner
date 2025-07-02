@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	git "github.com/go-git/go-git/v6"
 	"github.com/go-git/go-git/v6/plumbing/transport"
@@ -26,12 +27,27 @@ func CloneRepo(ctx context.Context, cloneURL string, token string) (string, erro
 		}
 	}
 
-	_, err = git.PlainCloneContext(ctx, dir, &git.CloneOptions{
-		URL:      cloneURL,
-		Depth:    1,
-		Auth:     auth,
-		Progress: os.Stdout,
-	})
+	const maxAttempts = 3
+	const delayTime = 500 * time.Millisecond
+
+	for attempt := 1; attempt <= maxAttempts; attempt++ {
+		_, err = git.PlainCloneContext(ctx, dir, &git.CloneOptions{
+			URL:      cloneURL,
+			Depth:    1,
+			Auth:     auth,
+			Progress: os.Stdout,
+		})
+		if err == nil {
+			break
+		}
+		if ctx.Err() != nil {
+			break
+		}
+		if attempt < maxAttempts {
+			time.Sleep(delayTime * time.Duration(attempt))
+		}
+	}
+
 	if err != nil {
 		os.RemoveAll(dir)
 		return "", fmt.Errorf("error cloning repository: %w", err)
